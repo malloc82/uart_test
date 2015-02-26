@@ -1,5 +1,5 @@
 CC  := /usr/bin/gcc
-SRC := uart.c
+SRC := main.c
 
 CFLAGS  := 
 LDFLAGS := 
