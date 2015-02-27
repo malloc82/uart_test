@@ -18,13 +18,9 @@ volatile int STOP=FALSE;
 
 extern struct termios oldtio, newtio;
 
-int main(int argc, char *argv[])
-{
-    
-    return 0;
-}
-
 int initializePort(const char * port)
+/* Return a file descriptor of the serial port
+ */
 {
     int fd,c, res;
     char buf[255];
@@ -34,7 +30,7 @@ int initializePort(const char * port)
     */
     fd = open(port, O_RDWR | O_NOCTTY );
     if (fd <0) {
-        perror(MODEMDEVICE);
+        perror(port);
         exit(-1);
     }
 
@@ -99,6 +95,7 @@ int initializePort(const char * port)
     tcflush(fd, TCIFLUSH);
     tcsetattr(fd,TCSANOW,&newtio);
 
+    return fd;
     /*
       terminal settings done, now handle input
       In this example, inputting a 'z' at the beginning of a line will
@@ -118,3 +115,12 @@ int initializePort(const char * port)
     /* restore the old port settings */
     tcsetattr(fd,TCSANOW,&oldtio);
 }
+
+
+int closeport(int fd)
+{
+    tcsetattr(fd,TCSANOW,&oldtio);
+    close(fd);
+    return 0;
+}
+
