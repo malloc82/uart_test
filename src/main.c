@@ -26,7 +26,8 @@ int main(int argc, char *argv[])
     unsigned char * return_buf = NULL;
     char device[BUF_SIZE];
     unsigned int baudrate = B9600;
-    while ((opt = getopt(argc, argv, "B:l:L:i:d:")) != -1) {
+    unsigned char quiet = 0;
+    while ((opt = getopt(argc, argv, "B:l:L:i:d:q")) != -1) {
         switch (opt) {
             case 'B':
                 /* if (strncmp(optarg, "50", 2) == 0) { */
@@ -111,15 +112,19 @@ int main(int argc, char *argv[])
                 }
                 input_buf[size] = '\0';
                 break;
+            case 'q':
+                quiet = 1;
+                break;
             default:
-                fprintf(stderr, "Usage: %s [-d device] [-B baudrate] [-L output_length] [-i input_string]\n",
+                fprintf(stderr, "Usage: %s [-d device] [-B baudrate] [-L output_length] [-i input_string] [-q]\n",
                         argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
-    printf("output length = %u \n", output_length);
-
-    printf("input_string = %s\n", input_buf);
+    if (!quiet) {
+        printf("output length = %u \n", output_length);
+        printf("input_string = %s\n", input_buf);
+    }
 
     int fd = initializePort(device, baudrate);
     write(fd, input_buf, size);
@@ -129,14 +134,20 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     int length, res;
-    puts("reading ...");
+    if (!quiet)
+        puts("reading ...");
     for (length = 0, res = 0; length < output_length; length += res) {
         res = read(fd, return_buf + length, 10);
-        printf("res = %d\n", res);
+        if (!quiet)
+            printf("res = %d\n", res);
     }
-    puts("done");
+    if (!quiet)
+        puts("done");
     return_buf[length] = '\0';
-    printf("return buf = %s\n", return_buf);
+    if (!quiet)
+        printf("return buf = %s\n", return_buf);
+    else
+        puts(return_buf);
     closePort(fd);
     free(return_buf);
     return 0;
