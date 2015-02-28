@@ -15,7 +15,7 @@ extern char * optarg;
 
 struct termios oldtio, newtio;
 
-int initializePort(const char *);
+int initializePort(const char *, const unsigned int);
 int closePort(int);
 
 int main(int argc, char *argv[])
@@ -25,8 +25,74 @@ int main(int argc, char *argv[])
     unsigned char input_buf[BUF_SIZE];
     unsigned char * return_buf = NULL;
     char device[BUF_SIZE];
-    while ((opt = getopt(argc, argv, "l:L:i:d:")) != -1) {
+    unsigned int baudrate = B9600;
+    while ((opt = getopt(argc, argv, "B:l:L:i:d:")) != -1) {
         switch (opt) {
+            case 'B':
+                /* if (strncmp(optarg, "50", 2) == 0) { */
+                /*     baudrate = B50; */
+                /* } else if (strncmp(optarg, "75", 2) == 0) { */
+                /*     baudrate = B75; */
+                /* } else if (strncmp(optarg, "110", 3) == 0) { */
+                /*     baudrate = B110; */
+                /* } else if (strncmp(optarg, "134", 3) == 0) { */
+                /*     baudrate = B134; */
+                /* } else if (strncmp(optarg, "150", 3) == 0) { */
+                /*     baudrate = B150; */
+                /* } else if (strncmp(optarg, "200", 3) == 0) { */
+                /*     baudrate = B200; */
+                /* } else if (strncmp(optarg, "300", 3) == 0) { */
+                /*     baudrate = B300; */
+                /* } else if (strncmp(optarg, "600", 3) == 0) { */
+                /*     baudrate = B600; */
+                /* } else if (strncmp(optarg, "1200", 4) == 0) { */
+                /*     baudrate = B1200; */
+                /* } else if (strncmp(optarg, "1800", 4) == 0) { */
+                /*     baudrate = B1800; */
+                /* } else if (strncmp(optarg, "2400", 4) == 0) { */
+                /*     baudrate = B2400; */
+                /* } else */
+                if (strncmp(optarg, "4800", 4) == 0) {
+                    baudrate = B4800;
+                } else if (strncmp(optarg, "9600", 4) == 0) {
+                    baudrate = B9600;
+                } else if (strncmp(optarg, "19200", 5) == 0) {
+                    baudrate = B19200;
+                } else if (strncmp(optarg, "38400", 5) == 0) {
+                    baudrate = B38400;
+                } else if (strncmp(optarg, "57600", 5) == 0) {
+                    baudrate = B57600;
+                } else if (strncmp(optarg, "115200", 6) == 0) {
+                    baudrate = B115200;
+                /* } else if (strncmp(optarg, "230400", 6) == 0) { */
+                /*     baudrate = B230400; */
+                /* } else if (strncmp(optarg, "460800", 6) == 0) { */
+                /*     baudrate = B460800; */
+                /* } else if (strncmp(optarg, "500000", 6) == 0) { */
+                /*     baudrate = B500000; */
+                /* } else if (strncmp(optarg, "576000", 6) == 0) { */
+                /*     baudrate = B576000; */
+                /* } else if (strncmp(optarg, "921600", 6) == 0) { */
+                /*     baudrate = B921600; */
+                /* } else if (strncmp(optarg, "1000000", 7) == 0) { */
+                /*     baudrate = B1000000; */
+                /* } else if (strncmp(optarg, "1152000", 7) == 0) { */
+                /*     baudrate = B1152000; */
+                /* } else if (strncmp(optarg, "2000000", 7) == 0) { */
+                /*     baudrate = B2000000; */
+                /* } else if (strncmp(optarg, "2500000", 7) == 0) { */
+                /*     baudrate = B2500000; */
+                /* } else if (strncmp(optarg, "3000000", 7) == 0) { */
+                /*     baudrate = B3000000; */
+                /* } else if (strncmp(optarg, "3500000", 7) == 0) { */
+                /*     baudrate = B3500000; */
+                /* } else if (strncmp(optarg, "4000000", 7) == 0) { */
+                /*     baudrate = B4000000; */
+                } else {
+                    fprintf(stderr, "Error: Unsupported baudrate: %s\n", optarg);
+                    exit(EXIT_FAILURE);
+                }
+                break;
             case 'L':
                 output_length = atoi(optarg);
                 break;
@@ -46,7 +112,7 @@ int main(int argc, char *argv[])
                 input_buf[size] = '\0';
                 break;
             default:
-                fprintf(stderr, "Usage: %s [-d device] [-L output_length] [-i input string]\n",
+                fprintf(stderr, "Usage: %s [-d device] [-B baudrate] [-L output_length] [-i input_string]\n",
                         argv[0]);
                 exit(EXIT_FAILURE);
         }
@@ -55,7 +121,7 @@ int main(int argc, char *argv[])
 
     printf("input_string = %s\n", input_buf);
 
-    int fd = initializePort(device);
+    int fd = initializePort(device, baudrate);
     write(fd, input_buf, size);
     return_buf = malloc((output_length+1)*sizeof(unsigned char));
     if (!return_buf) {
@@ -76,7 +142,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-int initializePort(const char * port)
+int initializePort(const char * port, const unsigned int baudrate)
 /* Return a file descriptor of the serial port
  */
 {
@@ -121,10 +187,11 @@ int initializePort(const char * port)
     /*
       now clean the modem line and activate the settings for the port
     */
-    newtio.c_cflag = BAUDRATE | CS8 | HUPCL | CREAD ;
+    /* printf("size of c_cflag = %d\n", sizeof(newtio.c_cflag)); */
+    newtio.c_cflag = baudrate | CS8 | HUPCL | CREAD ;
     newtio.c_iflag = 0;
-    newtio.c_lflag = 0;
     newtio.c_oflag = OPOST | OLCUC | OCRNL | NL0 | CR0 | TAB0 | BS0 | VT0 | FF0;
+    newtio.c_lflag = 0;
 
     tcflush(fd, TCIFLUSH);
     tcsetattr(fd,TCSANOW,&newtio);
