@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
                 input_buf[size] = '\0';
                 break;
             default:
-                fprintf(stderr, "Usage: %s [-l input_length] [-L output_length] [-b] <input chars>\n",
+                fprintf(stderr, "Usage: %s [-d device] [-L output_length] [-i input string]\n",
                         argv[0]);
                 exit(EXIT_FAILURE);
         }
@@ -66,6 +66,7 @@ int main(int argc, char *argv[])
     puts("reading ...");
     for (length = 0, res = 0; length < output_length; length += res) {
         res = read(fd, return_buf + length, 10);
+        printf("res = %d\n", res);
     }
     puts("done");
     return_buf[length] = '\0';
@@ -95,60 +96,36 @@ int initializePort(const char * port)
     bzero(&newtio, sizeof(newtio)); /* clear struct for new port settings */
 
     /*
-      BAUDRATE: Set bps rate. You could also use cfsetispeed and cfsetospeed.
-      CRTSCTS : output hardware flow control (only used if the cable has
-      all necessary lines. See sect. 7 of Serial-HOWTO)
-      CS8     : 8n1 (8bit,no parity,1 stopbit)
-      CLOCAL  : local connection, no modem contol
-      CREAD   : enable receiving characters
-    */
-    newtio.c_cflag = BAUDRATE | CRTSCTS | CS8 | CLOCAL | CREAD;
-
-    /*
-      IGNPAR  : ignore bytes with parity errors
-      ICRNL   : map CR to NL (otherwise a CR input on the other computer
-      will not terminate input)
-      otherwise make device raw (no other input processing)
-    */
-    newtio.c_iflag = IGNPAR | ICRNL;
-
-    /*
-      Raw output.
-    */
-    newtio.c_oflag = 0;
-
-    /*
-      ICANON  : enable canonical input
-      disable all echo functionality, and don't send signals to calling program
-    */
-    newtio.c_lflag = ICANON;
-
-    /*
       initialize all control characters
       default values can be found in /usr/include/termios.h, and are given
       in the comments, but we don't need them here
     */
-    newtio.c_cc[VINTR]    = 0;     /* Ctrl-c */
-    newtio.c_cc[VQUIT]    = 0;     /* Ctrl-\ */
-    newtio.c_cc[VERASE]   = 0;     /* del */
-    newtio.c_cc[VKILL]    = 0;     /* @ */
-    newtio.c_cc[VEOF]     = 4;     /* Ctrl-d */
-    newtio.c_cc[VTIME]    = 0;     /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 1;     /* blocking read until 1 character arrives */
-    newtio.c_cc[VSWTC]    = 0;     /* '\0' */
-    newtio.c_cc[VSTART]   = 0;     /* Ctrl-q */
-    newtio.c_cc[VSTOP]    = 0;     /* Ctrl-s */
-    newtio.c_cc[VSUSP]    = 0;     /* Ctrl-z */
-    newtio.c_cc[VEOL]     = 0;     /* '\0' */
-    newtio.c_cc[VREPRINT] = 0;     /* Ctrl-r */
-    newtio.c_cc[VDISCARD] = 0;     /* Ctrl-u */
-    newtio.c_cc[VWERASE]  = 0;     /* Ctrl-w */
-    newtio.c_cc[VLNEXT]   = 0;     /* Ctrl-v */
-    newtio.c_cc[VEOL2]    = 0;     /* '\0' */
+    newtio.c_cc[VINTR]    = 0x03;     /* Ctrl-c */
+    newtio.c_cc[VQUIT]    = 0x1c;     /* Ctrl-\ */
+    newtio.c_cc[VERASE]   = 0x7f;     /* del */
+    newtio.c_cc[VKILL]    = 0x40;     /* @ */
+    newtio.c_cc[VEOF]     = 0x04;     /* Ctrl-d */
+    newtio.c_cc[VTIME]    = 0;        /* inter-character timer unused */
+    newtio.c_cc[VMIN]     = 1;        /* blocking read until 1 character arrives */
+    newtio.c_cc[VSWTC]    = 0;        /* '\0' */
+    newtio.c_cc[VSTART]   = 0x11;     /* Ctrl-q */
+    newtio.c_cc[VSTOP]    = 0x13;     /* Ctrl-s */
+    newtio.c_cc[VSUSP]    = 0x1a;     /* Ctrl-z */
+    newtio.c_cc[VEOL]     = 0;        /* '\0' */
+    newtio.c_cc[VREPRINT] = 0x12;     /* Ctrl-r */
+    newtio.c_cc[VDISCARD] = 0x0f;     /* Ctrl-u, flush */
+    newtio.c_cc[VWERASE]  = 0x17;     /* Ctrl-w */
+    newtio.c_cc[VLNEXT]   = 0x16;     /* Ctrl-v */
+    newtio.c_cc[VEOL2]    = 0;        /* '\0' */
 
     /*
       now clean the modem line and activate the settings for the port
     */
+    newtio.c_cflag = BAUDRATE | CS8 | HUPCL | CREAD ;
+    newtio.c_iflag = 0;
+    newtio.c_lflag = 0;
+    newtio.c_oflag = OPOST | OLCUC | OCRNL | NL0 | CR0 | TAB0 | BS0 | VT0 | FF0;
+
     tcflush(fd, TCIFLUSH);
     tcsetattr(fd,TCSANOW,&newtio);
 
