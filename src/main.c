@@ -145,9 +145,12 @@ int main(int argc, char *argv[])
         puts("done");
     return_buf[length] = '\0';
     if (!quiet)
-        printf("return buf = %s\n", return_buf);
-    else
-        puts(return_buf);
+        printf("\nreturn buf = ");
+    for (i = 0; i < length; ++i) {
+        printf("%02x ", *(return_buf + i));
+        /* printf("return buf = %s\n", return_buf); */
+    }
+    puts("");
     closePort(fd);
     free(return_buf);
     return 0;
