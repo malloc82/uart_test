@@ -1,12 +1,12 @@
 #include "uart.h"
 
-extern struct termios oldtio, newtio;
+struct termios oldtio, newtio;
 
 int initializePort(const char * port, const unsigned int baudrate)
 /* Return a file descriptor of the serial port
  */
 {
-    int fd,c, res;
+    int fd;
     /*
       Open modem device for reading and writing and not as controlling tty
       because we don't want to get killed if linenoise sends CTRL-C.

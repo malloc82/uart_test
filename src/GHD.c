@@ -2,38 +2,31 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 #include "uart.h"
 
 extern char * optarg;
 #define BUF_SIZE 255
 #define BAUDRATE B9600
 
-#define SIZE_BUF 2
-#define DATA_BUF 7
-
-struct termios oldtio, newtio;
-
-int initializePort(const char *, const unsigned int);
-int closePort(int);
-
 int main(int argc, char *argv[])
 {
     char device[BUF_SIZE];
     device[0] = '\0';
+    if (argc < 2) {
+        fprintf(stderr, "Error: Need to specify a tty device as argv[1].\n");
+        exit(EXIT_FAILURE);
+    }
     strncpy(device, argv[1], BUF_SIZE);
 
     unsigned char input_buf = 0x10;
-    printf("Input hex string : 0x%2x\n", input_buf);
+    printf("Input hex string : 0x%02x\n", input_buf);
 
-    int size = 1;
     int fd = initializePort(device, BAUDRATE);
-    write(fd, &input_buf, size);
+    write(fd, &input_buf, 1);
 
     int length, res, i;
     unsigned char return_code = 0xff;
     unsigned short data_length = 0;
-    unsigned char return_length[SIZE_BUF] = {0x00};
     unsigned char * return_data = NULL;
 
     /* read return code */
@@ -57,7 +50,7 @@ int main(int argc, char *argv[])
         printf("data lenght = 0, nothing to expect.\n");
         return 0;
     }
-    
+
     /* read data according to the data length just received. */
     return_data = malloc(data_length * sizeof(unsigned char));
 

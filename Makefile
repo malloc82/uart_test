@@ -13,7 +13,7 @@ OBJ     := $(patsubst %.c,$(OBJDIR)/%.c.o,$(notdir $(SRC)))
 GHD_OBJ := $(patsubst %.c,$(OBJDIR)/%.c.o,$(notdir $(GHD_SRC)))
 
 INCLUDE := -Iinclude
-CFLAGS  := 
+CFLAGS  := -Wall
 LDFLAGS := 
 
 DEBUG   := 

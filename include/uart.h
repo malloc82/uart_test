@@ -10,8 +10,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-
-struct termios oldtio, newtio;
+#include <stdio.h>
 
 /* Initialize the tty device specified in the first parameter,
    with a given baud rate (second parameter).
