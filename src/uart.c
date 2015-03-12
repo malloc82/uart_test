@@ -7,7 +7,6 @@ int initializePort(const char * port, const unsigned int baudrate)
  */
 {
     int fd,c, res;
-    char buf[255];
     /*
       Open modem device for reading and writing and not as controlling tty
       because we don't want to get killed if linenoise sends CTRL-C.
