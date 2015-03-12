@@ -57,7 +57,8 @@ int main(int argc, char *argv[])
         printf("data lenght = 0, nothing to expect.\n");
         return 0;
     }
-
+    
+    /* read data according to the data length just received. */
     return_data = malloc(data_length * sizeof(unsigned char));
 
     for (length = 0, res = 0; length < data_length; length += res) {
