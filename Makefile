@@ -19,16 +19,20 @@ LDFLAGS :=
 DEBUG   := 
 
 BINDIR  := bin
-EXE     := $(BINDIR)/uart
+UART_BIN := $(BINDIR)/uart
+GHD_BIN  := $(BINDIR)/GHD
 
-$(EXE): makedirectory $(SRC) $(OBJ)
+
+$(UART_BIN): makedirectory $(SRC) $(OBJ)
 	$(CC) $(LIB) $(LDFLAGS) $(OBJ) -o $@
 
-GHD: makedirectory $(GHD_SRC) $(GHD_OBJ)
+GHD: $(GHD_BIN)
+
+$(GHD_BIN): makedirectory $(GHD_SRC) $(GHD_OBJ)
 	$(CC) $(LIB) $(LDFLAGS) $(GHD_OBJ) -o $@
 
 $(OBJDIR)/%.c.o: $(SRCDIR)/%.c
-	$(VERBOSE) $(CC) $(DEBUG) $(CFLAGS) $(INCLUDE) -c $< -o  $@
+	$(VERBOSE) $(CC) $(DEBUG) $(CFLAGS) $(INCLUDE) -c $< -o $@
 
 makedirectory:
 	mkdir -p $(BINDIR)
