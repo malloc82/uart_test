@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <sys/select.h>
 
 #include "uart.h"
 
@@ -24,6 +25,10 @@ int main(int argc, char *argv[])
     device[0] = '\0';
     unsigned int baudrate = B9600;
     unsigned char quiet = 0;
+    struct timeval timeout;
+    timeout.tv_sec  = 1;
+    timeout.tv_usec = 0;
+
     while ((opt = getopt(argc, argv, "B:l:L:i:d:q")) != -1) {
         switch (opt) {
             case 'B':
@@ -132,30 +137,49 @@ int main(int argc, char *argv[])
     }
 
     int fd = initializePort(device, baudrate);
+    fd_set rfd;
+    FD_ZERO(&rfd);
+    FD_SET(fd, &rfd);
+
     write(fd, input_buf, size);
     return_buf = malloc((output_length+1)*sizeof(unsigned char));
     if (!return_buf) {
         fprintf(stderr, "Cannot allocate buff of size %d\n", output_length + 1);
         exit(EXIT_FAILURE);
     }
-    int length, res;
+    int length, res, rv;
     if (!quiet)
         puts("reading ...");
     for (length = 0, res = 0; length < output_length; length += res) {
-        res = read(fd, return_buf + length, 10);
+        rv = select(fd + 1, &rfd, NULL, NULL, &timeout);
+        if (rv == -1) {
+            perror("select");
+            goto __cleanup;
+            break;
+        } else if (rv == 0) {
+            printf("timeout ...\n");
+            goto __timeout;
+            break;
+        } else
+            res = read(fd, return_buf + length, 10);
         if (!quiet)
             printf("res = %d\n", res);
     }
     if (!quiet)
         puts("done");
+
+__timeout:
     return_buf[length] = '\0';
     if (!quiet)
-        printf("\nreturn buf = ");
+        printf("\nreturn data (%d bytes) : ", length);
     for (i = 0; i < length; ++i) {
         printf("%02x ", *(return_buf + i));
         /* printf("return buf = %s\n", return_buf); */
     }
     puts("");
+
+
+__cleanup:
     closePort(fd);
     free(return_buf);
     return 0;

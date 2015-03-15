@@ -12,6 +12,8 @@
 #include <string.h>
 #include <stdio.h>
 
+extern struct termios oldtio, newtio;
+
 /* Initialize the tty device specified in the first parameter,
    with a given baud rate (second parameter).
    Current tty setting will be stored into oldtio.
