@@ -65,3 +65,33 @@ int closePort(int fd)
     close(fd);
     return 0;
 }
+
+void print_hex_string(const unsigned char * buffer, const int length)
+{
+    int i;
+    for (i = 0; i < length; ++i) {
+        printf("%02x ", *(buffer + i));
+    }
+    fflush(stdout);
+    return;
+}
+
+void debug_hex_string(const unsigned char * buffer,
+                      const int length,
+                      const unsigned char debug_char,
+                      const int debug_length)
+{
+    int i;
+    for (i = 0; i < length; ++i) {
+        if (*(buffer+i) == debug_char) {
+            printf("\ndebug : ");
+            print_hex_string(buffer+i, debug_length + 1);
+            i = i + debug_length;
+            puts("");
+        } else {
+            printf("%02x ", *(buffer + i));
+        }
+    }
+    fflush(stdout);
+    return;
+}

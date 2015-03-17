@@ -24,4 +24,8 @@ int initializePort(const char *, const unsigned int);
 /* Restore tty setting from oldtio, and close the device. */
 int closePort(int);
 
+void print_hex_string(const unsigned char *, const int);
+
+void debug_hex_string(const unsigned char *, const int, const unsigned char, const int);
+
 #endif /* UART_H */

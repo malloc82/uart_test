@@ -132,8 +132,13 @@ int main(int argc, char *argv[])
     }
 
     if (!quiet) {
-        printf("output length = %u \n", output_length);
-        printf("input_string = %s\n", input_buf);
+        printf("output length    : %u \n", output_length);
+        printf("input hex string : ");
+        print_hex_string(input_buf, size);
+        puts("");
+        printf("timeout          : %us, %uus\n",
+               (unsigned int) timeout.tv_sec, (unsigned int)timeout.tv_usec);
+        fflush(stdout);
     }
 
     int fd = initializePort(device, baudrate);
@@ -142,14 +147,14 @@ int main(int argc, char *argv[])
     FD_SET(fd, &rfd);
 
     write(fd, input_buf, size);
-    return_buf = malloc((output_length+1)*sizeof(unsigned char));
+    return_buf = malloc((output_length)*sizeof(unsigned char));
     if (!return_buf) {
-        fprintf(stderr, "Cannot allocate buff of size %d\n", output_length + 1);
+        fprintf(stderr, "Cannot allocate buff of size %d\n", output_length);
         exit(EXIT_FAILURE);
     }
     int length, res, rv;
     if (!quiet)
-        puts("reading ...");
+        puts("\nreading ...");
     else
         puts("");
 
@@ -171,14 +176,11 @@ int main(int argc, char *argv[])
             res = read(fd, current, 10);
         }
         if (!quiet) {
-            printf("res = %d : ", res);
-            for (i = 0; i < res; ++i){
-                printf("0x%02x ", *(current + i));
-            }
+            printf("bytes read = %d : ", res);
+            print_hex_string(current, res);
             puts("");
             fflush(stdout);
         }
-
     }
     if (!quiet)
         puts("done");
@@ -187,12 +189,9 @@ __timeout:
     return_buf[length] = '\0';
     if (!quiet)
         printf("\nreturn data (%d bytes) : ", length);
-    for (i = 0; i < length; ++i) {
-        printf("%02x ", *(return_buf + i));
-        /* printf("return buf = %s\n", return_buf); */
-    }
+    /* print_hex_string(return_buf, length); */
+    debug_hex_string(return_buf, length, 0xdd, 12);
     puts("");
-
 
 __cleanup:
     closePort(fd);
