@@ -17,7 +17,7 @@ int closePort(int);
 
 int main(int argc, char *argv[])
 {
-    unsigned int output_length = 1;
+    unsigned int output_length = 1024; /* By default, reads 1K */
     int opt, n, i, size;
     unsigned char input_buf[BUF_SIZE];
     unsigned char * return_buf = NULL;
@@ -150,20 +150,35 @@ int main(int argc, char *argv[])
     int length, res, rv;
     if (!quiet)
         puts("reading ...");
-    for (length = 0, res = 0; length < output_length; length += res) {
+    else
+        puts("");
+
+    unsigned char * current = NULL;
+    for (length = 0, res = 0, current = return_buf;
+         length < output_length;
+         length += res, current = return_buf + length)
+    {
         rv = select(fd + 1, &rfd, NULL, NULL, &timeout);
         if (rv == -1) {
             perror("select");
             goto __cleanup;
             break;
         } else if (rv == 0) {
-            printf("timeout ...\n");
+            printf("timeout ... total %d bytes read.\n", length);
             goto __timeout;
             break;
-        } else
-            res = read(fd, return_buf + length, 10);
-        if (!quiet)
-            printf("res = %d\n", res);
+        } else {
+            res = read(fd, current, 10);
+        }
+        if (!quiet) {
+            printf("res = %d : ", res);
+            for (i = 0; i < res; ++i){
+                printf("0x%02x ", *(current + i));
+            }
+            puts("");
+            fflush(stdout);
+        }
+
     }
     if (!quiet)
         puts("done");
