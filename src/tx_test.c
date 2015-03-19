@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     timeout.tv_sec  = 1;
     timeout.tv_usec = 0;
 
-    while ((opt = getopt(argc, argv, "B:l:L:i:d:Dq")) != -1) {
+    while ((opt = getopt(argc, argv, "B:l:i:d:Dq")) != -1) {
         switch (opt) {
             case 'B':
                 /* if (strncmp(optarg, "50", 2) == 0) { */
@@ -100,9 +100,6 @@ int main(int argc, char *argv[])
                     exit(EXIT_FAILURE);
                 }
                 break;
-            case 'L':
-                output_length = atoi(optarg);
-                break;
             case 'd':
                 strncpy(device, optarg, BUF_SIZE);
                 if (access(device, F_OK) == -1) {
@@ -126,8 +123,7 @@ int main(int argc, char *argv[])
                 break;
             default:
                 fprintf(stderr,
-                        "Usage: %s [-d device] [-B baudrate]"
-                        " [-L <expected output length>] [-i <input hex string>] [-q]\n",
+                        "Usage: %s [-d device] [-B baudrate] [-i <input hex string>] [-q]\n",
                         argv[0]);
                 exit(EXIT_FAILURE);
         }
@@ -202,7 +198,25 @@ __timeout:
     else
         print_hex_string(return_buf, length);
     puts("");
-
+    int unmatch = 0;
+    if (length != 256) {
+        fprintf(stderr,
+                "Error: in correct data read: %d. \n"
+                "Should be 256.\n", length);
+    } else {
+        unsigned char   test_char = 0x00;
+        for (i = 0; i < 256; ++i) {
+            if (return_buf[i] != test_char + i) {
+                unmatch++;
+                printf("unmatched: %02x vs %02x\n", return_buf[i], (unsigned char)test_char + i);
+            }
+        }
+        if (unmatch == 0) {
+            puts("TX is good.");
+        } else {
+            printf("There are %d errors.\n", unmatch);
+        }
+    }
 __cleanup:
     closePort(fd);
     free(return_buf);

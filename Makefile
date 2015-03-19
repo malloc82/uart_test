@@ -9,8 +9,16 @@ SRC     := $(SRCDIR)/main.c \
 GHD_SRC := $(SRCDIR)/GHD.c \
            $(SRCDIR)/uart.c
 
+TX_SRC  := $(SRCDIR)/tx_test.c \
+           $(SRCDIR)/uart.c
+
+RX_SRC  := $(SRCDIR)/rx_test.c \
+           $(SRCDIR)/uart.c
+
 OBJ     := $(patsubst %.c,$(OBJDIR)/%.c.o,$(notdir $(SRC)))
 GHD_OBJ := $(patsubst %.c,$(OBJDIR)/%.c.o,$(notdir $(GHD_SRC)))
+TX_OBJ  := $(patsubst %.c,$(OBJDIR)/%.c.o,$(notdir $(TX_SRC)))
+RX_OBJ  := $(patsubst %.c,$(OBJDIR)/%.c.o,$(notdir $(RX_SRC)))
 
 INCLUDE := -Iinclude
 CFLAGS  := -Wall
@@ -21,15 +29,26 @@ DEBUG   :=
 BINDIR  := bin
 UART_BIN := $(BINDIR)/uart
 GHD_BIN  := $(BINDIR)/GHD
-
+TX_TEST_BIN := $(BINDIR)/tx_test
+RX_TEST_BIN := $(BINDIR)/rx_test
 
 $(UART_BIN): makedirectory $(SRC) $(OBJ)
 	$(CC) $(LIB) $(LDFLAGS) $(OBJ) -o $@
 
 GHD: $(GHD_BIN)
 
+TX_TEST: $(TX_TEST_BIN)
+
+RX_TEST: $(RX_TEST_BIN)
+
 $(GHD_BIN): makedirectory $(GHD_SRC) $(GHD_OBJ)
 	$(CC) $(LIB) $(LDFLAGS) $(GHD_OBJ) -o $@
+
+$(TX_TEST_BIN): makedirectory $(TX_SRC) $(TX_OBJ)
+	$(CC) $(LIB) $(LDFLAGS) $(TX_OBJ) -o $@
+
+$(RX_TEST_BIN): makedirectory $(RX_SRC) $(RX_OBJ)
+	$(CC) $(LIB) $(LDFLAGS) $(RX_OBJ) -o $@
 
 $(OBJDIR)/%.c.o: $(SRCDIR)/%.c
 	$(VERBOSE) $(CC) $(DEBUG) $(CFLAGS) $(INCLUDE) -c $< -o $@
