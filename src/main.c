@@ -13,6 +13,7 @@ extern char * optarg;
 // bit location in format
 #define QUIET_MODE 1
 #define DEBUG_MODE 2
+#define ASCII_MODE 4
 
 struct termios oldtio, newtio;
 
@@ -23,17 +24,20 @@ int main(int argc, char *argv[])
 {
     unsigned char format = 0x00;
     unsigned int output_length = 1024; /* By default, reads 1K */
-    int opt, n, i, size;
+    int opt, n, i;
     unsigned char input_buf[BUF_SIZE];
+    unsigned int input_length = 0;
     unsigned char * return_buf = NULL;
     char device[BUF_SIZE];
+    char end_str[16];
+    unsigned int end_str_length = 0;
     device[0] = '\0';
     unsigned int baudrate = B9600;
     struct timeval timeout;
-    timeout.tv_sec  = 1;
+    timeout.tv_sec  = 3;
     timeout.tv_usec = 0;
 
-    while ((opt = getopt(argc, argv, "B:l:L:i:d:Dq")) != -1) {
+    while ((opt = getopt(argc, argv, "B:l:L:i:a:e:d:Dq")) != -1) {
         switch (opt) {
             case 'B':
                 /* if (strncmp(optarg, "50", 2) == 0) { */
@@ -115,11 +119,21 @@ int main(int argc, char *argv[])
                 break;
             case 'i':
                 n = strlen(optarg);
-                for (i = 0, size = 0; i < n && size < BUF_SIZE-1; i+=2, ++size) {
+                for (i = 0, input_length = 0; i < n && input_length < BUF_SIZE-1; i+=2, ++input_length) {
                     /* printf("i = %d, c = %d\n", i, c); */
-                    sscanf(optarg + i, "%2hhx", input_buf + size);
+                    sscanf(optarg + i, "%2hhx", input_buf + input_length);
                 }
-                input_buf[size] = '\0';
+                break;
+            case 'a':
+                format = format | ASCII_MODE;
+                strncpy((char *)input_buf, optarg, BUF_SIZE);
+                input_length = strlen(optarg);
+                break;
+            case 'e':
+                n = strlen(optarg);
+                for (i = 0, end_str_length = 0; i < n && end_str_length < 16; i+= 2, ++end_str_length) {
+                    sscanf(optarg + i, "%2hhx", end_str + end_str_length);
+                }
                 break;
             case 'q':
                 format = format | QUIET_MODE;
@@ -133,6 +147,13 @@ int main(int argc, char *argv[])
         }
     }
 
+    if (end_str_length > 0) {
+        strncpy((char *)input_buf + input_length, end_str, end_str_length); /* Need to use a min here*/
+        input_length += end_str_length;
+    } else {
+        input_buf[input_length] = '\0';
+    }
+
     if (strlen(device) == 0) {
         fprintf(stderr, "Error, need to specify a tty device");
         exit(EXIT_FAILURE);
@@ -140,9 +161,13 @@ int main(int argc, char *argv[])
 
     if (!(format & QUIET_MODE)) {
         printf("output length    : %u \n", output_length);
-        printf("input hex string : ");
-        print_hex_string(input_buf, size);
+        if (format & ASCII_MODE) {
+            printf("input ascii string: %s\n", input_buf);
+        }
+        printf("input hex string  : ");
+        print_hex_string(input_buf, input_length);
         puts("");
+
         printf("timeout          : %us, %uus\n",
                (unsigned int) timeout.tv_sec, (unsigned int)timeout.tv_usec);
         fflush(stdout);
@@ -153,7 +178,7 @@ int main(int argc, char *argv[])
     FD_ZERO(&rfd);
     FD_SET(fd, &rfd);
 
-    write(fd, input_buf, size);
+    write(fd, input_buf, input_length);
     return_buf = malloc((output_length)*sizeof(unsigned char));
     if (!return_buf) {
         fprintf(stderr, "Cannot allocate buff of size %d\n", output_length);
@@ -166,7 +191,8 @@ int main(int argc, char *argv[])
         puts("");
 
     unsigned char * current = NULL;
-    for (length = 0, res = 0, current = return_buf;
+    unsigned int unread_limit = 100, unread_count = 0;
+    for (length = 0, res = 0, current = return_buf, unread_count = 0;
          length < output_length;
          length += res, current = return_buf + length)
     {
@@ -187,6 +213,15 @@ int main(int argc, char *argv[])
             print_hex_string(current, res);
             puts("");
             fflush(stdout);
+        }
+        if (res == 0) {
+            ++unread_count;
+        } else {
+            unread_count = 0;
+        }
+        if (unread_count > unread_limit) {
+            fprintf(stderr, "RX not responding ... quit");
+            goto __timeout;
         }
     }
     if (!(format & QUIET_MODE))
