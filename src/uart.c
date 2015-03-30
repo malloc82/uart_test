@@ -49,7 +49,8 @@ int initializePort(const char * port, const unsigned int baudrate)
     /* printf("size of c_cflag = %d\n", sizeof(newtio.c_cflag)); */
     newtio.c_cflag = baudrate | CS8 | HUPCL | CREAD ;
     newtio.c_iflag = 0;
-    newtio.c_oflag = OPOST | OLCUC | OCRNL | NL0 | CR0 | TAB0 | BS0 | VT0 | FF0;
+    /* newtio.c_oflag = OPOST | OLCUC | OCRNL | NL0 | CR0 | TAB0 | BS0 | VT0 | FF0; */
+    newtio.c_oflag = OPOST | OCRNL | NL0 | CR0 | TAB0 | BS0 | VT0 | FF0;
     newtio.c_lflag = 0;
 
     tcflush(fd, TCIFLUSH);
