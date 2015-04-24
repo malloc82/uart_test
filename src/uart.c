@@ -30,7 +30,7 @@ int initializePort(const char * port, const unsigned int baudrate)
     newtio.c_cc[VERASE]   = 0x7f;     /* del */
     newtio.c_cc[VKILL]    = 0x40;     /* @ */
     newtio.c_cc[VEOF]     = 0x04;     /* Ctrl-d */
-    newtio.c_cc[VTIME]    = 0;        /* inter-character timer unused */
+    newtio.c_cc[VTIME]    = 10;       /* inter-character timer unused */
     newtio.c_cc[VMIN]     = 1;        /* blocking read until 1 character arrives */
     newtio.c_cc[VSWTC]    = 0;        /* '\0' */
     newtio.c_cc[VSTART]   = 0x11;     /* Ctrl-q */
@@ -47,11 +47,11 @@ int initializePort(const char * port, const unsigned int baudrate)
       now clean the modem line and activate the settings for the port
     */
     /* printf("size of c_cflag = %d\n", sizeof(newtio.c_cflag)); */
-    newtio.c_cflag = baudrate | CS8 | HUPCL | CREAD ;
-    newtio.c_iflag = 0;
+    newtio.c_cflag = baudrate | CS8 | CREAD ;
+    newtio.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON | IXOFF);
     /* newtio.c_oflag = OPOST | OLCUC | OCRNL | NL0 | CR0 | TAB0 | BS0 | VT0 | FF0; */
-    newtio.c_oflag = OPOST | OCRNL | NL0 | CR0 | TAB0 | BS0 | VT0 | FF0;
-    newtio.c_lflag = 0;
+    newtio.c_oflag = OCRNL | NL0 | CR0 | TAB0 | BS0 | VT0 | FF0;
+    newtio.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
 
     tcflush(fd, TCIFLUSH);
     tcsetattr(fd,TCSANOW,&newtio);

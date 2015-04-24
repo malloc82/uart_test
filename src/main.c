@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     device[0] = '\0';
     unsigned int baudrate = B9600;
     struct timeval timeout;
-    timeout.tv_sec  = 1;
+    timeout.tv_sec  = 3;
     timeout.tv_usec = 0;
 
     while ((opt = getopt(argc, argv, "B:l:L:i:a:e:d:Dq")) != -1) {
@@ -208,6 +208,7 @@ int main(int argc, char *argv[])
         } else {
             res = read(fd, current, output_length - length);
         }
+        /* res = read(fd, current, output_length - length); */
         if (!(format & QUIET_MODE)) {
             printf("bytes read = %d : ", res);
             print_hex_string(current, res);

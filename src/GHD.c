@@ -3,26 +3,18 @@
 #include <string.h>
 
 #include "uart.h"
+#include "PDD_settings.h"
 
 extern char * optarg;
 #define BUF_SIZE 255
-#define BAUDRATE B9600
 
 int main(int argc, char *argv[])
 {
-    char device[BUF_SIZE];
-    device[0] = '\0';
-    if (argc < 2) {
-        fprintf(stderr, "Error: Need to specify a tty device as argv[1].\n");
-        exit(EXIT_FAILURE);
-    }
-    strncpy(device, argv[1], BUF_SIZE);
+    unsigned char input_cmd = 0x10;
+    printf("Input hex string : 0x%02x\n", input_cmd);
 
-    unsigned char input_buf = 0x10;
-    printf("Input hex string : 0x%02x\n", input_buf);
-
-    int fd = initializePort(device, BAUDRATE);
-    write(fd, &input_buf, 1);
+    int fd = initializePort(PORT, BAUDRATE);
+    write(fd, &input_cmd, 1);
 
     int length, res, i;
     unsigned char return_code = 0xff;
@@ -42,7 +34,7 @@ int main(int argc, char *argv[])
     /* read next two bytes for data length */
     for (length = 2, res = 0; length > 0; length -= res) {
         res = read(fd, ((unsigned char *)(&data_length)) + (length - 1), 1);
-        printf("res = %d, length = %d\n", res, length);
+        /* printf("res = %d, length = %d\n", res, length); */
     }
     printf(" => data_length = %d\n", data_length);
 
@@ -56,7 +48,7 @@ int main(int argc, char *argv[])
 
     for (length = 0, res = 0; length < data_length; length += res) {
         res = read(fd, return_data + length, data_length - length);
-        printf("res = %d\n", res);
+        /* printf("res = %d\n", res); */
     }
 
     printf(" => return data hex string = ");
@@ -65,6 +57,57 @@ int main(int argc, char *argv[])
         /* printf("return buf = %s\n", return_buf); */
     }
     puts("");
+
+    unsigned char MDU[3];
+    unsigned char SDU[3];
+    unsigned char GRD[3];
+
+    memcpy(MDU, return_data + 7, 3);
+    memcpy(SDU, return_data + 4, 3);
+    memcpy(GRD, return_data + 1, 3);
+
+    printf("\nmode = %02x\n\n", return_data[0]);
+
+    puts("     startup      = 0\n"
+         "     reg_update   = 1\n"
+         "     t_powerup    = 2\n"
+         "     t_quiet      = 3\n"
+         "     normal       = 4\n"
+         "     fullshutdown = 5\n"
+         "     autostandby  = 6\n");
+
+    printf("     threshold   range   empty   full   state   en   running  recording\n");
+    printf("MDU  %4d        %d       %d       %d      %d       %d    %d        %d\n",
+           (MDU[0] << 4) | (MDU[1] >> 4),
+           (0x0C & MDU[1]) >> 2,
+           (0x02 & MDU[1]) >> 1,
+           (0x01 & MDU[1]),
+           MDU[2] >> 4,
+           (MDU[2] & 0x04) >> 2,
+           (MDU[2] & 0x02) >> 1,
+           (MDU[2] & 0x01));
+
+    printf("SDU  %4d        %d       %d       %d      %d       %d    %d        %d\n",
+           (SDU[0] << 4) | (SDU[1] >> 4),
+           (0x0C & SDU[1]) >> 2,
+           (0x02 & SDU[1]) >> 1,
+           (0x01 & SDU[1]),
+           SDU[2] >> 4,
+           (SDU[2] & 0x04) >> 2,
+           (SDU[2] & 0x02) >> 1,
+           (SDU[2] & 0x01));
+
+    printf("GRD  %4d        %d       %d       %d      %d       %d    %d        %d\n",
+           (GRD[0] << 4) | (GRD[1] >> 4),
+           (0x0C & GRD[1]) >> 2,
+           (0x02 & GRD[1]) >> 1,
+           (0x01 & GRD[1]),
+           GRD[2] >> 4,
+           (GRD[2] & 0x04) >> 2,
+           (GRD[2] & 0x02) >> 1,
+           (GRD[2] & 0x01));
+
+
     free(return_data);
     closePort(fd);
     return 0;
