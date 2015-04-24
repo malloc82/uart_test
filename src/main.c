@@ -28,10 +28,9 @@ int main(int argc, char *argv[])
     unsigned char input_buf[BUF_SIZE];
     unsigned int input_length = 0;
     unsigned char * return_buf = NULL;
-    char device[BUF_SIZE];
+    char device[BUF_SIZE] = "/dev/ttyS1";
     char end_str[16];
     unsigned int end_str_length = 0;
-    device[0] = '\0';
     unsigned int baudrate = B9600;
     struct timeval timeout;
     timeout.tv_sec  = 3;

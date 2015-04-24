@@ -76,6 +76,11 @@ int main(int argc, char *argv[])
          "     fullshutdown = 5\n"
          "     autostandby  = 6\n");
 
+    if (return_data[0] & 0x01) {
+        puts("MDU + Grid : ON  (use piezo 9)\n");
+    } else {
+        puts("MDU + Grid : OFF (use piezo B)\n");
+    }
     printf("     threshold   range   empty   full   state   en   running  recording\n");
     printf("MDU  %4d        %d       %d       %d      %d       %d    %d        %d\n",
            (MDU[0] << 4) | (MDU[1] >> 4),
