@@ -49,8 +49,8 @@ int main(int argc, char *argv[])
     }
 
     /* read next two bytes for data length */
-    for (length = 2, res = 0; length > 0; length -= res) {
-        res = read(fd, ((unsigned char *)(&data_length)) + (length - 1), 1);
+    for (length = 0, res = 0; length < 2; length += res) {
+        res = read(fd, ((unsigned char *)(&data_length)) + length, 2 - length);
         /* printf("res = %d, length = %d\n", res, length); */
     }
     printf(" => data_length = %d\n", data_length);
@@ -77,12 +77,12 @@ int main(int argc, char *argv[])
     /* puts(""); */
 
 
-    unsigned char temp;
-    for (i = 0; i < (length >> 1); ++i) {
-        temp               = return_data[2*i];
-        return_data[2*i]   = return_data[2*i+1];
-        return_data[2*i+1] = temp;
-    }
+    /* unsigned char temp; */
+    /* for (i = 0; i < (length >> 1); ++i) { */
+    /*     temp               = return_data[2*i]; */
+    /*     return_data[2*i]   = return_data[2*i+1]; */
+    /*     return_data[2*i+1] = temp; */
+    /* } */
 
     raw_data = (short *)return_data;
 
