@@ -8,9 +8,9 @@
 extern char * optarg;
 #define BUF_SIZE 255
 
-const char * range_lookup(int val)
+const char * range_lookup(int range_val)
 {
-    switch(val) {
+    switch(range_val) {
         case 0:
             return "+/-2.5v";
         case 1:
@@ -22,22 +22,24 @@ const char * range_lookup(int val)
     }
 }
 
-const char * state_lookup(int val)
+const char * state_lookup(int state_val)
 {
-    switch(val){
+    switch(state_val){
         case 0:
             return "startup";
         case 1:
             return "reg_update";
         case 2:
             return "t_powerup";
-        case 3:
+        case 3: /* 3 is t_quiet, which should be part of normal mode */
         case 4:
             return "normal";
         case 5:
             return "fullshutdown";
         case 6:
             return "autostandby";
+        case 7:
+            return "autoshutdown";
         default:
             return "INVALID";
     }
@@ -93,33 +95,21 @@ int main(int argc, char *argv[])
     }
     puts("");
 
-    unsigned char MDU[3];
-    unsigned char SDU[3];
-    unsigned char GRD[3];
+    const unsigned char * MDU = return_data + 7;
+    const unsigned char * SDU = return_data + 4;
+    const unsigned char * GRD = return_data + 1;
 
-    memcpy(MDU, return_data + 7, 3);
-    memcpy(SDU, return_data + 4, 3);
-    memcpy(GRD, return_data + 1, 3);
-
-    printf("\nmode = %02x\n\n", return_data[0]);
-
-    puts("     startup      = 0\n"
-         "     reg_update   = 1\n"
-         "     t_powerup    = 2\n"
-         "     t_quiet      = 3\n"
-         "     normal       = 4\n"
-         "     fullshutdown = 5\n"
-         "     autostandby  = 6\n");
-
-    printf("Quantization level: \n"
+    printf("\nQuantization level: \n"
            "    +/- 2.5v   %.3fmv\n"
-           "    +/-   5v   %.3fmv\n"
-           "    +/-  10v   %.3fmv\n\n",  5000.0/8192, 10000.0/8192, 20000.0/8192);
+           "      +/- 5v   %.3fmv\n"
+           "     +/- 10v   %.3fmv\n",  5000.0/8192, 10000.0/8192, 20000.0/8192);
+
+    printf("\nmode = %02x\n", return_data[0]);
 
     if (return_data[0] & 0x01) {
-        puts("MDU + Grid : ON  (use piezo 9)\n");
+        puts("\nMDU + Grid : ON  (piezo #9  [use 0xA9 to download its data])\n");
     } else {
-        puts("MDU + Grid : OFF (use piezo 11 (0xb))\n");
+        puts("\nMDU + Grid : OFF (piezo #11 [use 0xAB to download its data])\n");
     }
     printf("     threshold   range     empty   full   state         en   running  recording\n");
     printf("     --------------------------------------------------------------------------\n");
@@ -153,7 +143,6 @@ int main(int argc, char *argv[])
            (GRD[2] & 0x04) >> 2,
            (GRD[2] & 0x02) >> 1,
            (GRD[2] & 0x01));
-
 
     free(return_data);
     closePort(fd);
