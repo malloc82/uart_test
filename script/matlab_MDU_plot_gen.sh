@@ -17,7 +17,8 @@ echo "];" >> ${MATLAB_FILE};
 
 # cat ${HOME}/dev/uart_test/script/matlab_data_plot.m >> ${MATLAB_FILE};
 
-echo "for i=1:9
+echo "figure
+for i=1:9
     % fprintf('index = %d\n', i);
     subplot(3, 3, i);
     plot((0:length(MDU_data(i, :))-1), MDU_data(i, :));
