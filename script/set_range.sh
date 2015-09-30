@@ -9,6 +9,7 @@ if ! [ -f ${exec_path}/uart ]; then
     exit 1
 fi
 
+OPCODE=5
 DEVICE=${1^^} # convert to upper case
 RANGE=${2^^}
 PORT=$(grep -i port ${header} | awk -F"[\"]" '{print $2}')
@@ -39,22 +40,27 @@ case ${DEVICE} in
        ;;
 esac
 
-range_idx=3
+RANGE_VAL=EE
 case ${RANGE} in
-    +/-2.5V) range_idx=0
-             ;;
-    +/-5V) range_idx=1
-             ;;
-    +/-10V) range_idx=2
-             ;;
+    +/-2.5V) 
+        RANGE_VAL=00
+        ;;
+    +/-5V) 
+        RANGE_VAL=01
+        ;;
+    +/-10V) 
+        RANGE_VAL=02
+        ;;
     *)
+        echo ""
         echo "Invalid range. Valid ranges are:"
         echo "   +/-2.5v"
         echo "   +/-5v"
         echo "   +/-10v"
+        echo ""
         exit 1
         ;;
 esac
 
-input_command=5${idx}$(printf "%02x" ${range_idx})
+input_command=${OPCODE}${idx}${RANGE_VAL}
 echo "${exec_path}/uart -d ${PORT} -B ${BAUD} -L 1 -i ${input_command}"

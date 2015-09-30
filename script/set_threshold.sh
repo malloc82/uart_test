@@ -8,7 +8,7 @@ if ! [ -f ${exec_path}/uart ]; then
     echo "Executable $(readlink -m ${exec_path}) not found, quit."
     exit 1
 fi
-
+OPCODE=4
 DEVICE=${1^^}  # convert to upper case
 RANGE=${2^^}
 VOLTAGE_mv=${3}
@@ -32,6 +32,11 @@ case ${DEVICE} in
         echo ""
         echo "Usage:"
         echo "   $(basename $0) <DEVICE> <RANGE> <voltage in mv>"
+        echo ""
+        echo "Valid device      Valid ranges       Voltage range (mv)"
+        echo "   MDU             +/-2.5v            0-2500"
+        echo "   SDU             +/-5v              0-5000"
+        echo "   GRD             +/-10v             0-10000"
         echo ""
         exit 0
         ;;
@@ -82,9 +87,10 @@ case ${range_idx} in
        ;;
 esac
 
-printf "threshold = %.0f\n" ${threshold}
+# printf "threshold = %.0f\n" ${threshold}
+THRESHOLD_HEX=$(printf "%03x0" $(printf "%.0f" ${threshold}))
+input_command=${OPCODE}${idx}${THRESHOLD_HEX}
 
-input_command=4${idx}$(printf "%03x" $(printf "%.0f" ${threshold}))0
 echo "${exec_path}/uart -d ${PORT} -B ${BAUD} -L 1 -i ${input_command}"
-${exec_path}/uart -d ${PORT} -B ${BAUD} -L 1 -i ${input_command}
+# ${exec_path}/uart -d ${PORT} -B ${BAUD} -L 1 -i ${input_command}
 
