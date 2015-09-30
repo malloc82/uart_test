@@ -8,6 +8,25 @@
 extern char * optarg;
 #define BUF_SIZE 255
 
+const double step_2_5v =  2500.0/(1 << 12);
+const double step_5v   =  5000.0/(1 << 12);
+const double step_10v  = 10000.0/(1 << 12);
+
+
+double convert_threshold_value(int raw_value, int range_val)
+{
+    switch(range_val) {
+        case 0: /* +/-2.5v */
+            return raw_value * step_2_5v;
+        case 1: /* +/-5.0v */
+            return raw_value * step_5v;
+        case 2: /* +/-10.ov */
+            return raw_value * step_10v;
+        default:
+            return -999999.9999;
+    }
+}
+
 const char * range_lookup(int range_val)
 {
     switch(range_val) {
@@ -101,8 +120,8 @@ int main(int argc, char *argv[])
 
     printf("\nQuantization level: \n"
            "    +/- 2.5v   %.3fmv\n"
-           "      +/- 5v   %.3fmv\n"
-           "     +/- 10v   %.3fmv\n",  5000.0/8192, 10000.0/8192, 20000.0/8192);
+           "    +/- 5.0v   %.3fmv\n"
+           "    +/-10.0v   %.3fmv\n",  step_2_5v, step_5v, step_10v);
 
     printf("\nmode = %02x\n", return_data[0]);
 
@@ -114,9 +133,11 @@ int main(int argc, char *argv[])
     printf("     threshold   range     empty   full   state         en   running  recording\n");
     printf("     --------------------------------------------------------------------------\n");
 
-    printf("MDU  %4d        %7s   %d       %d      %-12s  %d    %d        %d\n",
-           (MDU[0] << 4) | (MDU[1] >> 4),
-           range_lookup((0x0C & MDU[1]) >> 2),
+    int threshold_value = (MDU[0] << 4) | (MDU[1] >> 4);
+    int range_value     = (0x0C & MDU[1]) >> 2;
+    printf("MDU  %4.2f        %7s   %d       %d      %-12s  %d    %d        %d\n",
+           convert_threshold_value(threshold_value, range_value),
+           range_lookup(range_value),
            (0x02 & MDU[1]) >> 1,
            (0x01 & MDU[1]),
            state_lookup(MDU[2] >> 4),
@@ -124,9 +145,11 @@ int main(int argc, char *argv[])
            (MDU[2] & 0x02) >> 1,
            (MDU[2] & 0x01));
 
-    printf("SDU  %4d        %7s   %d       %d      %-12s  %d    %d        %d\n",
-           (SDU[0] << 4) | (SDU[1] >> 4),
-           range_lookup((0x0C & SDU[1]) >> 2),
+    threshold_value = (SDU[0] << 4) | (SDU[1] >> 4);
+    range_value     = (0x0C & SDU[1]) >> 2;
+    printf("SDU  %4.2f        %7s   %d       %d      %-12s  %d    %d        %d\n",
+           convert_threshold_value(threshold_value, range_value),
+           range_lookup(range_value),
            (0x02 & SDU[1]) >> 1,
            (0x01 & SDU[1]),
            state_lookup(SDU[2] >> 4),
@@ -134,9 +157,11 @@ int main(int argc, char *argv[])
            (SDU[2] & 0x02) >> 1,
            (SDU[2] & 0x01));
 
-    printf("GRD  %4d        %7s   %d       %d      %-12s  %d    %d        %d\n",
-           (GRD[0] << 4) | (GRD[1] >> 4),
-           range_lookup((0x0C & GRD[1]) >> 2),
+    threshold_value = (GRD[0] << 4) | (GRD[1] >> 4);
+    range_value     = (0x0C & GRD[1]) >> 2;
+    printf("GRD  %4.2f        %7s   %d       %d      %-12s  %d    %d        %d\n",
+           convert_threshold_value(threshold_value, range_value),
+           range_lookup(range_value),
            (0x02 & GRD[1]) >> 1,
            (0x01 & GRD[1]),
            state_lookup(GRD[2] >> 4),
