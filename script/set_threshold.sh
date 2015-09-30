@@ -10,7 +10,7 @@ if ! [ -f ${exec_path}/uart ]; then
 fi
 
 DEVICE=${1^^}  # convert to upper case
-RANGE=${2}
+RANGE=${2^^}
 VOLTAGE_mv=${3}
 PORT=$(grep -i port ${header} | awk -F"[\"]" '{print $2}')
 BAUD=$(grep -i baudrate ${header} | awk '{print $3}' | cut -b 2-)
@@ -42,11 +42,11 @@ esac
 
 range_idx=10
 case ${RANGE} in
-    +/-2.5v) range_idx=0
+    +/-2.5V) range_idx=0
              ;;
-    +/-5v) range_idx=1
+    +/-5V) range_idx=1
              ;;
-    +/-10v) range_idx=2
+    +/-10V) range_idx=2
              ;;
     *) 
         echo "Invalid range. Valid ranges are:"
