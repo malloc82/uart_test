@@ -130,13 +130,14 @@ int main(int argc, char *argv[])
     } else {
         puts("\nMDU + Grid : OFF (piezo #11 [use 0xAB to download its data])\n");
     }
-    printf("     threshold   range     empty   full   state         en   running  recording\n");
-    printf("     --------------------------------------------------------------------------\n");
+    printf("     threshold            range     empty   full   state         en   running  recording\n");
+    printf("     ------------------------------------------------------------------------------------\n");
 
     int threshold_value = (MDU[0] << 4) | (MDU[1] >> 4);
     int range_value     = (0x0C & MDU[1]) >> 2;
-    printf("MDU  %4.2f        %7s   %d       %d      %-12s  %d    %d        %d\n",
+    printf("MDU  %6.2fmv (0x%04x)    %7s   %d       %d      %-12s  %d    %d        %d\n",
            convert_threshold_value(threshold_value, range_value),
+           threshold_value,
            range_lookup(range_value),
            (0x02 & MDU[1]) >> 1,
            (0x01 & MDU[1]),
@@ -147,8 +148,9 @@ int main(int argc, char *argv[])
 
     threshold_value = (SDU[0] << 4) | (SDU[1] >> 4);
     range_value     = (0x0C & SDU[1]) >> 2;
-    printf("SDU  %4.2f        %7s   %d       %d      %-12s  %d    %d        %d\n",
+    printf("SDU  %6.2fmv (0x%04x)    %7s   %d       %d      %-12s  %d    %d        %d\n",
            convert_threshold_value(threshold_value, range_value),
+           threshold_value,
            range_lookup(range_value),
            (0x02 & SDU[1]) >> 1,
            (0x01 & SDU[1]),
@@ -159,8 +161,9 @@ int main(int argc, char *argv[])
 
     threshold_value = (GRD[0] << 4) | (GRD[1] >> 4);
     range_value     = (0x0C & GRD[1]) >> 2;
-    printf("GRD  %4.2f        %7s   %d       %d      %-12s  %d    %d        %d\n",
+    printf("GRD  %6.2fmv (0x%04x)    %7s   %d       %d      %-12s  %d    %d        %d\n",
            convert_threshold_value(threshold_value, range_value),
+           threshold_value,
            range_lookup(range_value),
            (0x02 & GRD[1]) >> 1,
            (0x01 & GRD[1]),
