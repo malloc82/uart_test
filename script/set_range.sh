@@ -9,7 +9,8 @@ if ! [ -f ${exec_path}/uart ]; then
     exit 1
 fi
 
-DEVICE=${1^^}
+DEVICE=${1^^} # convert to upper case
+RANGE=${2}
 PORT=$(grep -i port ${header} | awk -F"[\"]" '{print $2}')
 BAUD=$(grep -i baudrate ${header} | awk '{print $3}' | cut -b 2-)
 
@@ -26,15 +27,15 @@ case ${DEVICE} in
          ;;
     MDU) idx=1
          ;;
+    HELP)
+        echo ""
+        echo "Usage:"
+        echo "   $(basename $0) <DEVICE> <RANGE>
+        echo ""
+        exit 0
+        ;;
     *) echo "Unknown device ${DEVICE}. Valid devices are: GRD, SDU, MDU. quit"
        exit 1
        ;;
 esac
 
-if [ "$2" -gt "4095" -o "$2" -lt "0" ]; then
-    echo "range value is out of range [0, 4095], quit."
-    exit 1
-fi
-
-input_command=4${idx}$(printf "%03s" $(echo "obase=16; $2" | bc))0
-${exec_path}/uart -d ${PORT} -B ${BAUD} -L 1 -i ${input_command}
