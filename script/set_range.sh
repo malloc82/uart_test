@@ -58,3 +58,4 @@ esac
 
 input_command=5${idx}$(printf "%02x" ${range_idx})
 echo "${exec_path}/uart -d ${PORT} -B ${BAUD} -L 1 -i ${input_command}"
+${exec_path}/uart -d ${PORT} -B ${BAUD} -L 1 -i ${input_command}
