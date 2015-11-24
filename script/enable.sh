@@ -19,7 +19,7 @@ case ${DEVICE} in
     HELP)
         echo ""
         echo "Usage:"
-        echo "   $(basename $0) <DEVICE> <RANGE>"
+        echo "   $(basename $0) <DEVICE>"
         echo ""
         exit 0
         ;;

@@ -92,5 +92,5 @@ THRESHOLD_HEX=$(printf "%03x0" $(printf "%.0f" ${threshold}))
 input_command=${OPCODE}${idx}${THRESHOLD_HEX}
 
 echo "${exec_path}/uart -d ${PORT} -B ${BAUD} -L 1 -i ${input_command}"
-# ${exec_path}/uart -d ${PORT} -B ${BAUD} -L 1 -i ${input_command}
+${exec_path}/uart -d ${PORT} -B ${BAUD} -L 1 -i ${input_command}
 
