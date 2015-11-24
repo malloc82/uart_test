@@ -1,0 +1,35 @@
+
+## Pesudocode:
+
+__Start__:
+;; Adjusting range to +/-2.5v
+;; Adjusting threshold to 100mv --> 0a4 (roughly 100.10mv)
+send : 0xB40000FF5100410a4081
+                       ^^^ 
+__Collect__:
+if: sensor is full:
+   send : 0xA4
+   if: we want to collect another signal with the same threshold setting:
+      send : 0x91
+      goto : __Collect__
+   else if: we want to collection another signal with different threshold setting:
+      goto : __Start__ and adjust range & threshold level
+   else: stop.
+
+## Explanation:
+
+0xB40000FF5100410a4081 --> 5 commands: 0xB40000 0xFF 0x5100 0x410a40 0x81
+
+0xB40000: zero out memory content in sensor 4 (fifth) for testing
+0xFF:     Reset all modules
+0x5100:   set MDU's range to +/-2.5v
+          There are total 3 ranges available: +/-2.5v, +/-5v, +/-10v 
+0x410a40: set MDU's threshold level to 100.10mv
+0x81:     enable MDU start to collect data.
+
+0xA4:     download sensor 4's memory content
+0x91:     start collecting data for another round with the same range & threshold setting
+
+Note: Sensor state can be obtained by 0x10, which can tell if MDU is full or not.
+
+
