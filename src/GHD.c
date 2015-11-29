@@ -8,9 +8,9 @@
 extern char * optarg;
 #define BUF_SIZE 255
 
-const double step_2_5v =  2500.0/(1 << 12);
-const double step_5v   =  5000.0/(1 << 12);
-const double step_10v  = 10000.0/(1 << 12);
+const double step_2_5v =  2500.0/((1 << 12)-1);
+const double step_5v   =  5000.0/((1 << 12)-1);
+const double step_10v  = 10000.0/((1 << 12)-1);
 
 
 double convert_threshold_value(int raw_value, int range_val)
